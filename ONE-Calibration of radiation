@@ -1,0 +1,21 @@
+from osgeo import gdal
+import numpy as np
+
+'''辐射定标    1：写入栅格文件(单波段)  2.利用辐射定标公式   3.创建经过辐射定标后的栅格图像并保存'''
+dataset = gdal.Open(r'D:\\mapdata\\landsat-07\\1\\LE07_L1TP_121029_20070404_20170104_01_T1_B5.tif', gdal.GA_ReadOnly)
+cols = dataset.RasterXSize
+rows = dataset.RasterYSize
+data = dataset.GetRasterBand(1)
+Proj = dataset.GetProjection()
+Trans = dataset.GetGeoTransform()
+rasterdata = data.ReadAsArray(0, 0, cols, rows)
+Gain = 1.9122E-01
+Bias = -1.19122
+RaCal = Gain * rasterdata + Bias
+band = RaCal.astype(np.float32)
+outdriver = gdal.GetDriverByName("GTiff")
+out = outdriver.Create(r'D:\mapdata\landsat-07\5\BO5fushedingbiao', cols, rows, 1, 6)
+out.SetProjection(Proj)
+out.SetGeoTransform(Trans)
+outband = out.GetRasterBand(1)
+outband.WriteArray(RaCal)
